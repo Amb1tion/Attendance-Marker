@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="100">
+
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="154dp"
+        android:layout_height="48dp"
+        android:layout_weight="2"
+        android:background="@drawable/back"
+        android:gravity="center"
+        android:text="TextView1"
+        android:textAlignment="center" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="102dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:background="@drawable/back"
+        android:gravity="center"
+        android:text="TextView2"
+        android:textAlignment="center" />
+
+
+    <Button
+        android:id="@+id/Button"
+        android:layout_width="133dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@drawable/back"
+        android:gravity="center"
+        android:text="Button"
+        android:textAlignment="center"
+        android:focusableInTouchMode="false"/>
+
+    <!--    <LinearLayout-->
+<!--        android:orientation="vertical"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="33.3">-->
+
+<!--        <TextView-->
+<!--            android:gravity="center"-->
+<!--            android:text="TextView2"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="30dp"-->
+<!--            android:id="@+id/textView2"/>-->
+<!--        -->
+<!--    </LinearLayout>-->
+
+</LinearLayout>
