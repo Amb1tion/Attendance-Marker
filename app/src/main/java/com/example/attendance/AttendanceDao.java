@@ -10,8 +10,8 @@ import androidx.room.Query;
 
 @Dao
 public interface AttendanceDao {
-    @Query("SELECT * FROM attendance WHERE course LIKE :course AND date LIKE :date AND section LIKE :section")
-    List<Attendance> attendance_instance(String course, Date date,String section);
+    @Query("SELECT * FROM attendance WHERE course LIKE :course")
+    List<Attendance> attendance_instance(String course);
     @Insert
     void insert(Attendance attendance);
 }

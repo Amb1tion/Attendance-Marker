@@ -1,5 +1,7 @@
 package com.example.attendance;
 
+import android.os.Parcelable;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,20 +25,17 @@ public class Attendance {
     private List<Student> studentlist;
     @ColumnInfo(name="section")
     private String section;
+    @ColumnInfo(name="lectures")
+    private String lectures;
 
-    public String getSection() {
-        return section;
-    }
 
-    public void setSection(String section) {
-        this.section = section;
-    }
 
-    public Attendance(Date date) {
+    public Attendance(Date date,String course,List<Student> studentlist,String section,String lectures) {
         this.date = date;
         this.course=course;
         this.studentlist=studentlist;
         this.section=section;
+        this.lectures=lectures;
     }
 
     public Date getDate() {
@@ -62,4 +61,21 @@ public class Attendance {
     public void setStudentlist(List<Student> studentlist) {
         this.studentlist = studentlist;
     }
+
+    public String getLectures() {
+        return lectures;
+    }
+
+    public void setLectures(String lectures) {
+        this.lectures = lectures;
+    }
+
+    public String getSection() {
+        return section;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
+    }
+
 }

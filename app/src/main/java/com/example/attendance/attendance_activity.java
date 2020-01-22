@@ -1,26 +1,34 @@
 package com.example.attendance;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class attendance_activity extends AppCompatActivity {
-    private static final String TAG = "attendance activity";
+    private static final String TAG = "attendance_activity";
     private AppDatabase appDatabase;
     private String course;
     private ListView mListView;
@@ -31,14 +39,33 @@ public class attendance_activity extends AppCompatActivity {
     private ArrayList<String> sections;
     private ArrayList<String> empty;
     private Boolean flag=false;
-
     private ArrayAdapter<String> section_adapter;
+    private List<Attendance> att_list;
+    private AttendanceListAdapter attendancelistadapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.attendance_act_layout);
         appDatabase = AppDatabase.getInstance(attendance_activity.this);
         mPreferences = attendance_activity.this.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE);
+        mListView = (ListView) findViewById(R.id.listView2);
+
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent,View view,int position, long id){
+                Attendance selectedItem = (Attendance) parent.getItemAtPosition(position);
+                Gson gson = new Gson();
+                Type type = new TypeToken<Attendance>() {
+                }.getType();
+                String json = gson.toJson(selectedItem, type);
+                Intent intent = new Intent(getBaseContext(),MainActivity.class);
+                intent.putExtra("attendance",json);
+                startActivity(intent);
+                return true;
+            }
+        });
+
         try {
             sections = (ArrayList<String>) ObjectSerializer.deserialize(mPreferences.getString("Sections", ObjectSerializer.serialize(new ArrayList<String>())));
             if (sections == null || sections.size() == 0){
@@ -73,10 +100,38 @@ public class attendance_activity extends AppCompatActivity {
                 mButton.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         Log.d(TAG,"i'm stuff");
+                        Intent intent = new Intent(getBaseContext(),MainActivity.class);
+                        String selectedItem = (String) mSpinner.getSelectedItem().toString();
+                        intent.putExtra("section",selectedItem);
+                        intent.putExtra("course",course);
+                        startActivity(intent);
                     }
                 });
-
             }
         });
+        displayAttendance();
+    }
+    private void displayAttendance(){
+        new RetrieveTask(attendance_activity.this).execute();
+    }
+    private static class RetrieveTask extends AsyncTask<Void,Void, List<Attendance>>{
+        private WeakReference<attendance_activity> activityReference;
+        RetrieveTask(attendance_activity context){activityReference=new WeakReference<>(context);}
+
+        @Override
+        protected List<Attendance> doInBackground(Void... voids) {
+            if(activityReference.get() != null)
+                return activityReference.get().appDatabase.attendanceDao().attendance_instance(activityReference.get().course);
+            else
+                return null;
+        }
+        @Override
+        protected void onPostExecute(List<Attendance> attendances) {
+            activityReference.get().att_list=attendances;
+            activityReference.get().attendancelistadapter = new AttendanceListAdapter(activityReference.get(),R.layout.attendance_adapter,attendances);
+            activityReference.get().mListView.setAdapter(activityReference.get().attendancelistadapter);
+        }
+
+
     }
 }

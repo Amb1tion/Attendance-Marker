@@ -56,7 +56,6 @@ public class Activity2 extends Activity {
     public void onCreate(Bundle Icicle){
         super.onCreate(Icicle);
         setContentView(R.layout.activity2);
-
         appDatabase= AppDatabase.getInstance(Activity2.this);
         Stetho.initializeWithDefaults(this);
         sections = new ArrayList<>();

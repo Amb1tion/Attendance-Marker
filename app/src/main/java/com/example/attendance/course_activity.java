@@ -38,6 +38,9 @@ public class course_activity extends AppCompatActivity {
 
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setTitle(" Courses");
+        getSupportActionBar().setLogo(R.drawable.logo);
         setContentView(R.layout.course_layout);
         appDatabase= AppDatabase.getInstance(course_activity.this);
         Stetho.initializeWithDefaults(this);
