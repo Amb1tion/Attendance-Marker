@@ -270,15 +270,18 @@ public class course_activity extends AppCompatActivity {
                 fileOut.close();
 
                 Toast toast = Toast.makeText(activityReference.get(),"Excel File Saved to App Folder",Toast.LENGTH_SHORT);
+                toast.show();
             } catch (FileNotFoundException e) {
                 Toast toast = Toast.makeText(activityReference.get(),"FIle could not save",Toast.LENGTH_SHORT);
+                toast.show();
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
                 Toast toast = Toast.makeText(activityReference.get(),"FIle could not save",Toast.LENGTH_SHORT);
+                toast.show();
             }
             this.alertDialog.dismiss();
-            Toast toast = Toast.makeText(activityReference.get(),"Excel File Saved to App Folder",Toast.LENGTH_SHORT);
+
         }
 
 }
