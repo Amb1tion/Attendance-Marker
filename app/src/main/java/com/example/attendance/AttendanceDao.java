@@ -10,7 +10,7 @@ import androidx.room.Query;
 
 @Dao
 public interface AttendanceDao {
-    @Query("SELECT * FROM attendance WHERE course LIKE :course")
+    @Query("SELECT * FROM attendance WHERE course LIKE :course ORDER BY date DESC")
     List<Attendance> attendance_instance(String course);
     @Insert
     void insert(Attendance attendance);

@@ -2,11 +2,15 @@ package com.example.attendance;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -17,6 +21,7 @@ import android.widget.Toast;
 
 import com.facebook.stetho.Stetho;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -35,8 +40,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ShareCompat;
+import androidx.core.content.FileProvider;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 public class course_activity extends AppCompatActivity {
     private static final String TAG = "sbev";
@@ -49,14 +60,54 @@ public class course_activity extends AppCompatActivity {
     private String name;
     private AppDatabase appDatabase;
     private List<Attendance> att_list;
+    private DrawerLayout dl;
+    private ActionBarDrawerToggle t;
+    private NavigationView nv;
     @Override
 
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setTitle(" Courses");
-        getSupportActionBar().setLogo(R.drawable.logo);
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
         setContentView(R.layout.course_layout);
+        dl = (DrawerLayout)findViewById(R.id.activity_main);
+        t= new ActionBarDrawerToggle(this,dl,R.string.Open,R.string.Close);
+        dl.addDrawerListener(t);
+        t.syncState();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        nv=(NavigationView)findViewById(R.id.nv);
+        nv.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                int id=menuItem.getItemId();
+                switch(id)
+                {
+                    case R.id.import_data:
+                        Intent intent = new Intent(getBaseContext(),Activity2.class);
+                        startActivity(intent);
+
+                        break;
+                    case R.id.edit_data:
+                        Intent intent2 = new Intent(getBaseContext(),edit_courses.class);
+                        startActivity(intent2);
+                        finish();
+                        break;
+                    case R.id.help:
+                        Intent intent1 = new Intent(getBaseContext(),Activity2.class);
+                        startActivity(intent1);
+                       break;
+                }
+                return false;
+            }
+        });
+
+
+//        toolbar = (Toolbar) findViewById(R.id.toolbar2);
+////        toolbar.setDisplayShowHomeEnabled(true);
+//        toolbar.setTitle(" Courses");
+//        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setTitle(" Courses");
+
         appDatabase= AppDatabase.getInstance(course_activity.this);
         Stetho.initializeWithDefaults(this);
         mListView = (ListView) findViewById(R.id.listView2);
@@ -72,14 +123,31 @@ public class course_activity extends AppCompatActivity {
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                String selectedItem = (String) parent.getItemAtPosition(position);
+                final String selectedItem = (String) parent.getItemAtPosition(position);
                 LayoutInflater li = LayoutInflater.from(course_activity.this);
-                View promptsView = li.inflate(R.layout.inprogress,null);
-                AlertDialog alertDialogBuilder = new AlertDialog.Builder(course_activity.this).create();
-                alertDialogBuilder.setView(promptsView);
+
+//                View promptsView = li.inflate(R.layout.choice,null);
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(course_activity.this);
+                alertDialogBuilder.setMessage(R.string.export_message);
+                alertDialogBuilder.setTitle(R.string.export_title);
+                final AlertDialog alert_dialog = alertDialogBuilder.create();
+//                alertDialogBuilder.setView(promptsView);
+                alertDialogBuilder.setPositiveButton(R.string.local_button, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                new ExportTask(course_activity.this,selectedItem,alert_dialog,true).execute();
+                            }
+                        });
+                alertDialogBuilder.setNegativeButton(R.string.drive, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new ExportTask(course_activity.this,selectedItem,alert_dialog,false).execute();
+                    }
+                });
+
                 alertDialogBuilder.show();
-                //code to get all attendance instances from attendance table
-                new ExportTask(course_activity.this,selectedItem,alertDialogBuilder).execute();
+
+
 
 
                 return true;
@@ -135,6 +203,14 @@ public class course_activity extends AppCompatActivity {
                 alertDialog.show();
             }
         });
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(t.onOptionsItemSelected(item))
+            return true;
+
+        return super.onOptionsItemSelected(item);
     }
     private static class InsertTask extends AsyncTask<Void,Void,Boolean> {
         private String course_code;
@@ -219,15 +295,17 @@ public class course_activity extends AppCompatActivity {
         private List<Attendance> D_Attendances;
         private List<Attendance> E_Attendances;
         private List<Attendance> F_Attendances;
+        private Boolean flag;
 
-        ExportTask(course_activity context,String course,AlertDialog alertDialog){
+        ExportTask(course_activity context,String course,AlertDialog alertDialog,Boolean flag){
             this.alertDialog=alertDialog;
             this.course=course;
+            this.flag=flag;
             activityReference=new WeakReference<>(context);}
         @Override
         protected List<Attendance> doInBackground(Void... voids){
             if(activityReference.get() != null)
-            {//TODO MAKE THIS NOT INCREDIBLY JANKY , SECTION STRING COULD CHANGE DEPENDING ON EXCEL IMPORT ???
+            {//TODO SECTION STRING COULD CHANGE DEPENDING ON EXCEL IMPORT
                 this.A_Attendances=activityReference.get().appDatabase.attendanceDao().section_attendance(this.course,"Section-A");
                 this.B_Attendances=activityReference.get().appDatabase.attendanceDao().section_attendance(this.course,"Section-B");
                 this.C_Attendances=activityReference.get().appDatabase.attendanceDao().section_attendance(this.course,"Section-C");
@@ -268,9 +346,22 @@ public class course_activity extends AppCompatActivity {
                 FileOutputStream fileOut = new FileOutputStream(file);
                 workbook.write(fileOut);
                 fileOut.close();
-
-                Toast toast = Toast.makeText(activityReference.get(),"Excel File Saved to App Folder",Toast.LENGTH_SHORT);
-                toast.show();
+                if(this.flag){
+                    Toast toast = Toast.makeText(activityReference.get(),"Excel File Saved to App Folder",Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                else{
+//                    Uri outputUri = FileProvider.getUriForFile(activityReference.get(),"com.example.attendance.provide",file);
+                    String uri = "file://"+file.getAbsolutePath();
+                    Uri uploadUri = Uri.parse(uri);
+                    Intent uploadIntent = ShareCompat.IntentBuilder.from(activityReference.get())
+                            .setText("Share Document")
+                            .setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                            .setStream(uploadUri)
+                            .getIntent()
+                            .setPackage("com.google.android.apps.docs");
+                    activityReference.get().startActivity(uploadIntent);
+                }
             } catch (FileNotFoundException e) {
                 Toast toast = Toast.makeText(activityReference.get(),"FIle could not save",Toast.LENGTH_SHORT);
                 toast.show();

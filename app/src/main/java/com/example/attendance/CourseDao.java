@@ -12,5 +12,6 @@ public interface CourseDao {
     List<String> getnames();
     @Insert
     void insert(Course course);
-
+    @Query("DELETE FROM course WHERE name LIKE :name")
+    void del_course(String name);
 }

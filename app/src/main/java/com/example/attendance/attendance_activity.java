@@ -105,6 +105,8 @@ public class attendance_activity extends AppCompatActivity {
                         intent.putExtra("section",selectedItem);
                         intent.putExtra("course",course);
                         startActivity(intent);
+                        alertDialog.dismiss();
+                        finish();
                     }
                 });
             }
